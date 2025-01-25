@@ -9,6 +9,15 @@ export default function App() {
   const [inputTitle, setInputTitle] = useState("");
   const [inputContent, setInputContent] = useState("");
 
+  function handleEditMemory(id) {
+    const [memoryToBeEdited] = memories.filter((memory) => memory.id === id);
+    handleDeleteMemory(id);
+
+    setAreTextInputsOpen(true);
+    setInputTitle(memoryToBeEdited.title);
+    setInputContent(memoryToBeEdited.content);
+  }
+
   function handleAddNewMemory(e) {
     e.preventDefault();
     const date = new Date();
@@ -107,12 +116,16 @@ export default function App() {
         >
           {areTextInputsOpen ? "See Memories" : "New memory"}
         </p>
-        <p className="button" onClick={handleSort}>
-          Sort {sort}
-        </p>
-        <p className="button" onClick={handleDeleteAllMemories}>
-          Delete all
-        </p>
+        {!areTextInputsOpen && (
+          <>
+            <p className="button" onClick={handleSort}>
+              Sort {sort}
+            </p>
+            <p className="button" onClick={handleDeleteAllMemories}>
+              Delete all
+            </p>
+          </>
+        )}
       </div>
     );
   }
@@ -141,7 +154,9 @@ export default function App() {
             <p className="button" onClick={() => handleDeleteMemory(id)}>
               Delete
             </p>
-            <p className="button">Edit</p>
+            <p className="button" onClick={() => handleEditMemory(id)}>
+              Edit
+            </p>
           </div>
         )}
       </div>
