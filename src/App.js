@@ -1,30 +1,42 @@
 import { useState } from "react";
 import { useLocalStorage } from "./useLocalStorage";
 
-const tempMemories = [
-  {
-    id: "1232025",
-    title: "A really fun stroy about diggers!",
-    date: "1/23/2025",
-    content:
-      "Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi.",
-  },
-  {
-    id: "1242025",
-    title: "Ambatukam!",
-    date: "1/24/2025",
-    content:
-      "Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi.",
-  },
-];
-
 export default function App() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [memories, setMemories] = useLocalStorage([], "Memories");
   const [sort, setSort] = useLocalStorage("DESC");
+  const [areTextInputsOpen, setAreTextInputsOpen] = useState(false);
+  const [inputTitle, setInputTitle] = useState("");
+  const [inputContent, setInputContent] = useState("");
 
-  function handleDeleteMemories() {
+  function handleAddNewMemory(e) {
+    e.preventDefault();
+    const date = new Date();
+    const newMemory = {
+      title: inputTitle,
+      date: `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`,
+      content: inputContent,
+      id: `${date.toUTCString()}`,
+    };
+
+    setMemories((currMemories) =>
+      sort === "DESC"
+        ? [...currMemories, newMemory]
+        : [newMemory, ...currMemories]
+    );
+
+    setInputTitle("");
+    setInputContent("");
+
+    setAreTextInputsOpen(false);
+  }
+
+  function handleDeleteAllMemories() {
     setMemories([]);
+  }
+
+  function handleDeleteMemory(id) {
+    setMemories(memories.filter((memory) => memory.id !== id));
   }
 
   function handleSort() {
@@ -36,26 +48,45 @@ export default function App() {
     <div>
       <MainHeader />
       <ButtonsContainer />
-      <div className="container">
-        {memories.map((memory) => {
-          return (
-            <Memory
-              title={memory.title}
-              date={memory.date}
-              content={memory.content}
-              isExpanded={isExpanded}
-              setIsExpanded={setIsExpanded}
-              id={memory.id}
-              key={memory.id}
+      <div className="container--memories">
+        {areTextInputsOpen ? (
+          <form className="container--inputs" onSubmit={handleAddNewMemory}>
+            <input
+              type="text"
+              className="input--title"
+              placeholder="Type your memory title..."
+              value={inputTitle}
+              onChange={(e) => setInputTitle(e.target.value)}
             />
-          );
-        })}
+            <textarea
+              className="input--content"
+              placeholder="Type your memory..."
+              value={inputContent}
+              onChange={(e) => setInputContent(e.target.value)}
+            />
+            <input type="submit" value="Submit" className="input--submit" />
+          </form>
+        ) : (
+          memories.map((memory) => {
+            return (
+              <Memory
+                title={memory.title}
+                date={memory.date}
+                content={memory.content}
+                isExpanded={isExpanded}
+                setIsExpanded={setIsExpanded}
+                id={memory.id}
+                key={memory.id}
+              />
+            );
+          })
+        )}
       </div>
     </div>
   );
 
   function reverse(array) {
-    return array.map((item, index) => array[array.length - 1 - index]);
+    return array.map((_, index) => array[array.length - 1 - index]);
   }
 
   function MainHeader() {
@@ -70,11 +101,16 @@ export default function App() {
   function ButtonsContainer() {
     return (
       <div className="buttons--container">
-        <p className="button">New memory</p>
+        <p
+          className="button"
+          onClick={() => setAreTextInputsOpen((isOpen) => !isOpen)}
+        >
+          {areTextInputsOpen ? "See Memories" : "New memory"}
+        </p>
         <p className="button" onClick={handleSort}>
           Sort {sort}
         </p>
-        <p className="button" onClick={handleDeleteMemories}>
+        <p className="button" onClick={handleDeleteAllMemories}>
           Delete all
         </p>
       </div>
@@ -102,7 +138,9 @@ export default function App() {
         </span>
         {isThisItemExpanded1 && (
           <div className="memory--buttons__container">
-            <p className="button">Delete</p>
+            <p className="button" onClick={() => handleDeleteMemory(id)}>
+              Delete
+            </p>
             <p className="button">Edit</p>
           </div>
         )}
